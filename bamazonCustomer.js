@@ -15,13 +15,13 @@ var connection = mysql.createConnection({
 });
 
 connection.connect(function (err) {
-    if (err) throw err {
+    if (err) throw err 
         console.log("connected as id " + connection.threadId + "\n");
-    }
+    
     pullProducts();
 });
 
-function pullProduct() {
+function pullProducts() {
     connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
         console.table(res);
@@ -43,7 +43,7 @@ function requestItem(inventory) {
             if (products) {
                 requestQuantity(product);
             } else {
-                pullProduct();
+                pullProducts();
             }
         });
 }
