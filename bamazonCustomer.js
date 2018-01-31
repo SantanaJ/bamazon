@@ -15,9 +15,9 @@ var connection = mysql.createConnection({
 });
 
 connection.connect(function (err) {
-    if (err) throw err 
-        console.log("connected as id " + connection.threadId + "\n");
-    
+    if (err) throw err
+    console.log("connected as id " + connection.threadId + "\n");
+
     pullProducts();
 });
 
@@ -30,17 +30,20 @@ function pullProducts() {
 }
 
 function requestItem(inventory) {
+    // console.log("inventory", inventory);
+
     inquirer
         .prompt([{
             type: "input",
             name: "choice",
-            message: "What is it you are looking for?"
+            message: "What is it you are looking for? Search by Id number."
         }])
         .then(function (val) {
             var idCheck = parseInt(val.choice);
             var product = searchInventory(idCheck, inventory);
+            // console.log("product:", product);
 
-            if (products) {
+            if (product) {
                 requestQuantity(product);
             } else {
                 pullProducts();
@@ -48,7 +51,7 @@ function requestItem(inventory) {
         });
 }
 
-function requestQuantity() {
+function requestQuantity(product) {
     inquirer
         .prompt([{
                 type: "input",
@@ -60,31 +63,33 @@ function requestQuantity() {
 
         .then(function (val) {
             var quantity = parseInt(val.quantity);
+            // console.log("product quantity:", product.stock_quantity);
 
             if (quantity > product.stock_quantity) {
                 pullProducts();
             } else {
-                completePurchase(product, quantity);
+                var newQty = product.stock_quantity - quantity;
+                completePurchase(product, newQty);
             }
         });
-    }
-function completePurchase(product,quantity){
-connection.query(
-    "UPDATE products SET stock_quantity = stock_quantity -? WHERE item_id = ?",
-    [quantity, product.item_id],
-    function(err,res){
-        console.log("\nYour purchase " + quantity + ""+ product.product_name);
-        pullProducts();
-    }
-);
 }
 
-function searchInventory(idCheck, inventory){
-    for(var i = 0; i < inventory.length; i++){
-        if(inventory[i].item_id === idCheck){
-            return inventory [i];
+function completePurchase(product, quantity) {
+    connection.query(
+        "UPDATE products SET stock_quantity = ? WHERE item_id = ?", [quantity, product.item_id],
+        function (err, res) {
+            // console.log("\nYou purchased " + quantity + " " + product.product_name);
+            console.log(`\nYou purchased ${quantity} ${product.product_name}\n`);
+            pullProducts();
+        }
+    );
+}
+
+function searchInventory(idCheck, inventory) {
+    for (var i = 0; i < inventory.length; i++) {
+        if (inventory[i].item_id === idCheck) {
+            return inventory[i];
         }
     }
     return null;
 }
-
